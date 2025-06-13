@@ -76,27 +76,19 @@ Desenvolver um sistema multitarefa com FreeRTOS no Raspberry Pi Pico (BitDogLab)
    ```
 ### 🔍 Reflexões técnicas:
 
-#### 1. Tarefas com mesma prioridade
-**Comportamento observado**:  
-- O escalonador do FreeRTOS utiliza **time slicing** para tarefas de mesma prioridade (prioridade 1 no código)  
-- **Problema potencial**: Se uma tarefa não liberar a CPU (ex.: loop sem `vTaskDelay`), pode causar **starvation** nas demais  
-- **Solução no projeto**: Todas as tarefas usam `vTaskDelay` ou `vTaskDelayUntil`, garantindo compartilhamento justo da CPU
+#### 1. O que acontece se todas as tarefas tiverem a mesma prioridade?
 
-#### 2. Consumo de CPU por tarefa
-**Análise detalhada**:  
-| Tarefa            | Frequência     | Uso de CPU | Prioridade | Estado Inicial |
-|-------------------|---------------|------------|------------|----------------|
-| `tarefa_botoes`   | 10ms (polling) | ~8%       | 2 (Alta)   | Ativo          |
-| `tarefa_led`      | 500ms         | <1%        | 1         | Ativo          |
-| `tarefa_buzzer`   | 1s            | <1%        | 1         | Ativo          |
-| `tarefa_oled`     | 250ms         | ~3%        | 1         | Ativo          |
+Se todas as tarefas forem configuradas com a mesma prioridade no FreeRTOS, o escalonador utilizará o mecanismo de **time slicing**, ou seja, as tarefas irão compartilhar o tempo de CPU de forma igualitária, alternando a execução a cada tick do sistema. Porém, essa alternância só acontece se as tarefas fizerem chamadas que liberem a CPU, como `vTaskDelay()`, `vTaskDelayUntil()` ou esperas por eventos como semáforos. Se alguma tarefa com prioridade igual entrar em um loop contínuo sem bloqueios, ela pode monopolizar a CPU, impedindo que as outras tarefas executem, o que pode causar problemas de starvation e travamento de funcionalidades importantes.
 
-**Conclusões**:  
-- A tarefa de botões tem maior consumo por seu polling rápido (10ms), mas é essencial para responsividade  
-- O uso de `vTaskDelay` nas demais tarefas reduz drasticamente o consumo de CPU  
-- A prioridade 2 para botões garante tempo real na detecção de eventos
+#### 2. Qual tarefa consome mais tempo da CPU?
 
-#### 3. Riscos e soluções implementadas
+No projeto desenvolvido, a tarefa que mais consome tempo de CPU é a **tarefa de leitura dos botões**. Isso acontece porque ela utiliza um método de polling com verificações a cada 10 milissegundos para garantir uma resposta rápida aos eventos de botão. Mesmo utilizando `vTaskDelay` ao final de cada ciclo, sua alta frequência de execução faz com que ela exija mais atenção do processador em comparação com tarefas que operam com intervalos maiores, como o controle do LED, do buzzer ou da atualização do display OLED.
+
+#### 3. Quais seriam os riscos de usar polling sem prioridades?
+
+O uso de polling sem uma definição clara de prioridades traz diversos riscos ao sistema. Primeiramente, pode ocorrer a **inanição de tarefas menos frequentes**, pois o processador pode ficar ocupado constantemente com tarefas de verificação rápida, deixando outras tarefas importantes sem tempo de execução. Além disso, existe o risco de **resposta lenta a eventos críticos**, já que o sistema pode não conseguir alternar de forma eficiente entre as tarefas quando todas competem no mesmo nível de prioridade. Outro problema é o **desperdício de recursos da CPU**, já que loops de polling executados sem delays consomem processamento mesmo quando não há eventos a serem tratados, o que aumenta o consumo de energia e reduz a eficiência do sistema. Para evitar esses problemas, no projeto foi configurada uma prioridade mais alta para a tarefa de botões, além da utilização de delays mínimos para permitir a preempção pelo escalonador.
+
+### ❌ Riscos e soluções implementadas
 **Desafios encontrados**:  
 1. **Debounce inconsistente**:  
    - Solução: Implementação de máquina de estados com timer de 50ms (`DEBOUNCE_MS`)  
