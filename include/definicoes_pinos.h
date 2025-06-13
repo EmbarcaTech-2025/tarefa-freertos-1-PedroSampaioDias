@@ -1,0 +1,23 @@
+#ifndef DEFINICOES_PINOS_H
+#define DEFINICOES_PINOS_H
+
+#define PINO_LED_VERMELHO 13
+#define PINO_LED_VERDE 11
+#define PINO_LED_AZUL 12
+
+#define PINO_BUZZER 21
+#define FREQUENCIA_BUZZER 1000
+
+#define PINO_BOTAO_A 5
+#define PINO_BOTAO_B 6
+#define DEBOUNCE_MS 50
+
+#define PINO_I2C_SDA 14
+#define PINO_I2C_SCL 15
+#define ENDERECO_I2C_OLED 0x3C
+#define FREQUENCIA_I2C 400000
+#define PORTA_I2C i2c1
+#define LARGURA_OLED 128
+#define ALTURA_OLED 64
+
+#endif
