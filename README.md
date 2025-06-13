@@ -88,7 +88,7 @@ No projeto desenvolvido, a tarefa que mais consome tempo de CPU é a **tarefa de
 
 O uso de polling sem uma definição clara de prioridades traz diversos riscos ao sistema. Primeiramente, pode ocorrer a **inanição de tarefas menos frequentes**, pois o processador pode ficar ocupado constantemente com tarefas de verificação rápida, deixando outras tarefas importantes sem tempo de execução. Além disso, existe o risco de **resposta lenta a eventos críticos**, já que o sistema pode não conseguir alternar de forma eficiente entre as tarefas quando todas competem no mesmo nível de prioridade. Outro problema é o **desperdício de recursos da CPU**, já que loops de polling executados sem delays consomem processamento mesmo quando não há eventos a serem tratados, o que aumenta o consumo de energia e reduz a eficiência do sistema. Para evitar esses problemas, no projeto foi configurada uma prioridade mais alta para a tarefa de botões, além da utilização de delays mínimos para permitir a preempção pelo escalonador.
 
-### ❌ Riscos e soluções implementadas
+### ⚠️ Riscos e soluções implementadas
 **Desafios encontrados**:  
 1. **Debounce inconsistente**:  
    - Solução: Implementação de máquina de estados com timer de 50ms (`DEBOUNCE_MS`)  
